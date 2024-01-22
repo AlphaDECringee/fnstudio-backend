@@ -1,0 +1,15 @@
+{
+    "moderators": ["616347662718992394"],
+    "discord": {
+        "bot_token": "MTE4MTMzODAxMjY4NTE3Mjg1Ng.GH0kn8.t2_7sUnO8MiLU9YLFBTVZ7wGD5n1cOmaMDMv9o"
+    },
+    "mongodb": {
+        "database": "mongodb+srv://alphadevia11:Si8lctkSMdVQ3yDb@fnstudio.z6bvwxx.mongodb.net/"
+    },
+    "chat": {
+        "//": "Disabling global chat can help the server to perform faster as less resources are used.",
+        "EnableGlobalChat": false
+    },
+    "matchmakerIP": "127.0.0.1:80",
+    "gameServerIP": "127.0.0.1:7777"
+}
