@@ -1,7 +1,7 @@
 {
-  "name": "lawinserverv2",
+  "name": "fnstudio-backend",
   "version": "1.0.0",
-  "description": "LawinServer V2 is a fortnite backend that features an account system and xmpp.",
+  "description": "A fortnite backend",
   "main": "index.js",
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -18,23 +18,6 @@
     "xmlbuilder": "^15.1.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Lawin0129/LawinServerV2.git"
-  },
-  "keywords": [
-    "fortnite",
-    "backend",
-    "node",
-    "server",
-    "v2"
-  ],
-  "author": "Lawin0129",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/Lawin0129/LawinServerV2/issues"
-  },
-  "homepage": "https://github.com/Lawin0129/LawinServerV2#readme"
+    "start": "node index.js"
+  }
 }

@@ -11,6 +11,571 @@ const { verifyToken, verifyClient } = require("../tokenManager/tokenVerify.js");
 
 global.giftReceived = {};
 
+//STW Requests
+
+// Set Homebase Name STW
+app.post("/fortnite/api/game/v2/profile/*/client/SetHomebaseName", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+
+    if (!await profileManager.validateProfile(req.query.profileId, profiles)) return error.createError(
+        "errors.com.epicgames.modules.profiles.operation_forbidden",
+        `Unable to find template configuration for profile ${req.query.profileId}`, 
+        [req.query.profileId], 12813, undefined, 403, res
+    );
+
+    let profile = profiles.profiles[req.query.profileId];
+
+    const memory = functions.GetVersionInfo(req);
+
+    // do not change any of these or you will end up breaking it
+    let ApplyProfileChanges = [];
+    let BaseRevision = profile.rvn;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    let QueryRevision = req.query.rvn || -1;
+
+    if (req.body.homebaseName) {
+        switch (req.query.profileId) {
+
+            case "profile0":
+                profile.stats.attributes.homebase.townName = req.body.homebaseName;
+                break;
+
+            case "common_public":
+                profile.stats.attributes.homebase_name = req.body.homebaseName;
+                break;
+        }
+    }
+
+    profile.rvn += 1;
+    profile.commandRevision += 1;
+
+    if (req.query.profileId == "profile0") {
+        ApplyProfileChanges.push({
+            "changeType": "statModified",
+            "name": "homebase",
+            "value": profile.stats.attributes.homebase
+        })
+    }
+
+    if (req.query.profileId == "common_public") {
+        ApplyProfileChanges.push({
+            "changeType": "statModified",
+            "name": "homebase_name",
+            "value": profile.stats.attributes.homebase_name
+        })
+    }
+
+    if (ApplyProfileChanges.length > 0) {
+        profile.updated = new Date().toISOString();
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "profile0",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
+// Update quest client objectives
+app.post("/fortnite/api/game/v2/profile/*/client/UpdateQuestClientObjectives", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+
+    let profile = profiles.profiles[req.query.profileId];
+
+    const memory = functions.GetVersionInfo(req);
+
+    // do not change any of these or you will end up breaking it
+    var ApplyProfileChanges = [];
+    var BaseRevision = profile.rvn;
+    var QueryRevision = req.query.rvn || -1;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    var StatChanged = false;
+
+    if (req.body.advance) {
+        for (var i in req.body.advance) {
+            var QuestsToUpdate = [];
+
+            for (var x in profile.items) {
+                if (profile.items[x].templateId.toLowerCase().startsWith("quest:")) {
+                    for (var y in profile.items[x].attributes) {
+                        if (y.toLowerCase() == `completion_${req.body.advance[i].statName}`) {
+                            QuestsToUpdate.push(x)
+                        }
+                    }
+                }
+            }
+
+            for (var i = 0; i < QuestsToUpdate.length; i++) {
+                var bIncomplete = false;
+                
+                profile.items[QuestsToUpdate[i]].attributes[`completion_${req.body.advance[i].statName}`] = req.body.advance[i].count;
+
+                ApplyProfileChanges.push({
+                    "changeType": "itemAttrChanged",
+                    "itemId": QuestsToUpdate[i],
+                    "attributeName": `completion_${req.body.advance[i].statName}`,
+                    "attributeValue": req.body.advance[i].count
+                })
+
+                if (profile.items[QuestsToUpdate[i]].attributes.quest_state.toLowerCase() != "claimed") {
+                    for (var x in profile.items[QuestsToUpdate[i]].attributes) {
+                        if (x.toLowerCase().startsWith("completion_")) {
+                            if (profile.items[QuestsToUpdate[i]].attributes[x] == 0) {
+                                bIncomplete = true;
+                            }
+                        }
+                    }
+    
+                    if (bIncomplete == false) {
+                        profile.items[QuestsToUpdate[i]].attributes.quest_state = "Claimed";
+    
+                        ApplyProfileChanges.push({
+                            "changeType": "itemAttrChanged",
+                            "itemId": QuestsToUpdate[i],
+                            "attributeName": "quest_state",
+                            "attributeValue": profile.items[QuestsToUpdate[i]].attributes.quest_state
+                        })
+                    }
+                }
+
+                StatChanged = true;
+            }
+        }
+    }
+
+    profile.rvn += 1;
+    profile.commandRevision += 1;
+
+    if (ApplyProfileChanges.length > 0) {
+        profile.updated = new Date().toISOString();
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "campaign",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
+// Claim STW daily reward
+app.post("/fortnite/api/game/v2/profile/*/client/ClaimLoginReward", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+    const DailyRewards = require("./../responses/Campaign/dailyRewards.json");
+    let profile = profiles.profiles[req.query.profileId];
+    const memory = functions.GetVersionInfo(req);
+    
+
+    // do not change any of these or you will end up breaking it
+    var ApplyProfileChanges = [];
+    var Notifications = [];
+
+    var ApplyProfileChanges = [];
+    var BaseRevision = profile.rvn;
+    var QueryRevision = req.query.rvn || -1;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    var StatChanged = false;
+
+    var DateFormat = (new Date().toISOString()).split("T")[0] + "T00:00:00.000Z";
+
+    if (profile.stats.attributes.daily_rewards.lastClaimDate != DateFormat) {
+        profile.stats.attributes.daily_rewards.nextDefaultReward += 1;
+        profile.stats.attributes.daily_rewards.totalDaysLoggedIn += 1;
+        profile.stats.attributes.daily_rewards.lastClaimDate = DateFormat;
+        profile.stats.attributes.daily_rewards.additionalSchedules.founderspackdailyrewardtoken.rewardsClaimed += 1;
+        StatChanged = true;
+    }
+
+    if (StatChanged == true) {
+        profile.rvn += 1;
+        profile.commandRevision += 1;
+
+        ApplyProfileChanges.push({
+            "changeType": "statModified",
+            "name": "daily_rewards",
+            "value": profile.stats.attributes.daily_rewards
+        })
+
+        if (memory.season < 7) {
+            var Day = profile.stats.attributes.daily_rewards.totalDaysLoggedIn % 336;
+            Notifications.push({
+                "type": "daily_rewards",
+                "primary": true,
+                "daysLoggedIn": profile.stats.attributes.daily_rewards.totalDaysLoggedIn,
+                "items": [DailyRewards[Day]]
+            })
+        }
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "campaign",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        notifications: Notifications,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
+// Assign worker to squad STW
+app.post("/fortnite/api/game/v2/profile/*/client/AssignWorkerToSquad", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+
+    let profile = profiles.profiles[req.query.profileId];
+
+    const memory = functions.GetVersionInfo(req);
+
+    // do not change any of these or you will end up breaking it
+    var ApplyProfileChanges = [];
+    var BaseRevision = profile.rvn;
+    var QueryRevision = req.query.rvn || -1;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    var StatChanged = false;
+
+    if (req.body.characterId) {
+        for (var key in profile.items) {
+            if (profile.items[key].hasOwnProperty('attributes')) {
+                if (profile.items[key].attributes.hasOwnProperty('squad_id') && profile.items[key].attributes.hasOwnProperty('squad_slot_idx')) {
+                    if (profile.items[key].attributes.squad_id != "" && profile.items[key].attributes.squad_slot_idx != -1) {
+                        if (profile.items[key].attributes.squad_id.toLowerCase() == req.body.squadId.toLowerCase() && profile.items[key].attributes.squad_slot_idx == req.body.slotIndex) {
+                            profile.items[key].attributes.squad_id = "";
+                            profile.items[key].attributes.squad_slot_idx = 0;
+
+                            ApplyProfileChanges.push({
+                                "changeType": "itemAttrChanged",
+                                "itemId": key,
+                                "attributeName": "squad_id",
+                                "attributeValue": profile.items[key].attributes.squad_id
+                            })
+
+                            ApplyProfileChanges.push({
+                                "changeType": "itemAttrChanged",
+                                "itemId": key,
+                                "attributeName": "squad_slot_idx",
+                                "attributeValue": profile.items[key].attributes.squad_slot_idx
+                            })
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (req.body.characterId) {
+        profile.items[req.body.characterId].attributes.squad_id = req.body.squadId || "";
+        profile.items[req.body.characterId].attributes.squad_slot_idx = req.body.slotIndex || 0;
+        StatChanged = true;
+    }
+
+    if (StatChanged == true) {
+        profile.rvn += 1;
+        profile.commandRevision += 1;
+
+        ApplyProfileChanges.push({
+            "changeType": "itemAttrChanged",
+            "itemId": req.body.characterId,
+            "attributeName": "squad_id",
+            "attributeValue": profile.items[req.body.characterId].attributes.squad_id
+        })
+
+        ApplyProfileChanges.push({
+            "changeType": "itemAttrChanged",
+            "itemId": req.body.characterId,
+            "attributeName": "squad_slot_idx",
+            "attributeValue": profile.items[req.body.characterId].attributes.squad_slot_idx
+        })
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "profile0",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
+// Set favorite on item
+app.post("/fortnite/api/game/v2/profile/*/client/SetItemFavoriteStatus", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+
+    let profile = profiles.profiles[req.query.profileId];
+
+    const memory = functions.GetVersionInfo(req);
+
+    // do not change any of these or you will end up breaking it
+    var ApplyProfileChanges = [];
+    var BaseRevision = profile.rvn;
+    var QueryRevision = req.query.rvn || -1;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    var StatChanged = false;
+
+    if (req.body.targetItemId) {
+        profile.items[req.body.targetItemId].attributes.favorite = req.body.bFavorite || false;
+        StatChanged = true;
+    }
+
+    if (StatChanged == true) {
+        profile.rvn += 1;
+        profile.commandRevision += 1;
+
+        ApplyProfileChanges.push({
+            "changeType": "itemAttrChanged",
+            "itemId": req.body.targetItemId,
+            "attributeName": "favorite",
+            "attributeValue": profile.items[req.body.targetItemId].attributes.favorite
+        })
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "athena",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
+// Transform items STW
+app.post("/fortnite/api/game/v2/profile/*/client/TransmogItem", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+
+    var transformItemIDS = require("./../responses/Campaign/transformItemIDS.json");
+
+    let profile = profiles.profiles[req.query.profileId];
+
+    const memory = functions.GetVersionInfo(req);
+
+    // do not change any of these or you will end up breaking it
+    var ApplyProfileChanges = [];
+    var Notifications = [];
+    var BaseRevision = profile.rvn;
+    var QueryRevision = req.query.rvn || -1;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    var StatChanged = false;
+
+    if (req.body.sacrificeItemIds && req.body.transmogKeyTemplateId) {
+        for (var i in req.body.sacrificeItemIds) {
+            var id = req.body.sacrificeItemIds[i];
+
+            delete profile.items[id];
+
+            ApplyProfileChanges.push({
+                "changeType": "itemRemoved",
+                "itemId": id
+            })
+        }
+
+        if (transformItemIDS.hasOwnProperty(req.body.transmogKeyTemplateId)) {
+            transformItemIDS = transformItemIDS[req.body.transmogKeyTemplateId]
+        }
+        else {
+            transformItemIDS = require("./../responses/Campaign/cardPackData.json").default;
+        }
+
+        StatChanged = true;
+    }
+
+    if (StatChanged == true) {
+        profile.rvn += 1;
+        profile.commandRevision += 1;
+
+        const randomNumber = Math.floor(Math.random() * transformItemIDS.length);
+        const ID = functions.MakeID();
+        var Item = {"templateId":transformItemIDS[randomNumber],"attributes":{"legacy_alterations":[],"max_level_bonus":0,"level":1,"refund_legacy_item":false,"item_seen":false,"alterations":["","","","","",""],"xp":0,"refundable":false,"alteration_base_rarities":[],"favorite":false},"quantity":1};
+        if (transformItemIDS[randomNumber].toLowerCase().startsWith("worker:")) {
+            Item.attributes = functions.MakeSurvivorAttributes(transformItemIDS[randomNumber]);
+        }
+
+        profile.items[ID] = Item;
+
+        Notifications.push({
+            "type": "transmogResult",
+            "primary": true,
+            "transmoggedItems": [
+                {
+                    "itemType": profile.items[ID].templateId,
+                    "itemGuid": ID,
+                    "itemProfile": req.query.profileId || "campaign",
+                    "attributes": profile.items[ID].attributes,
+                    "quantity": 1
+                }
+            ]
+        })
+
+        ApplyProfileChanges.push({
+            "changeType": "itemAdded",
+            "itemId": ID,
+            "item": Item
+        })
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "campaign",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        notifications: Notifications,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
+// Set STW banner
+app.post("/fortnite/api/game/v2/profile/*/client/SetHomebaseBanner", verifyToken, async (req, res) => {
+    const profiles = await Profile.findOne({ accountId: req.user.accountId });
+
+    let profile = profiles.profiles[req.query.profileId];
+
+    const memory = functions.GetVersionInfo(req);
+
+    // do not change any of these or you will end up breaking it
+    var ApplyProfileChanges = [];
+    var BaseRevision = profile.rvn;
+    var QueryRevision = req.query.rvn || -1;
+    let ProfileRevisionCheck = (memory.build >= 12.20) ? profile.commandRevision : profile.rvn;
+    var StatChanged = false;
+
+    if (req.body.homebaseBannerIconId && req.body.homebaseBannerColorId) {
+        switch (req.query.profileId) {
+
+            case "profile0":
+                profile.stats.attributes.homebase.bannerIconId = req.body.homebaseBannerIconId;
+                profile.stats.attributes.homebase.bannerColorId = req.body.homebaseBannerColorId;
+                StatChanged = true;
+                break;
+
+            case "common_public":
+                profile.stats.attributes.banner_icon = req.body.homebaseBannerIconId;
+                profile.stats.attributes.banner_color = req.body.homebaseBannerColorId;
+                StatChanged = true;
+                break;
+
+        }
+    }
+
+    if (StatChanged == true) {
+        profile.rvn += 1;
+        profile.commandRevision += 1;
+
+        if (req.query.profileId == "profile0") {
+            ApplyProfileChanges.push({
+                "changeType": "statModified",
+                "name": "homebase",
+                "value": profile.stats.attributes.homebase
+            })
+        }
+
+        if (req.query.profileId == "common_public") {
+            ApplyProfileChanges.push({
+                "changeType": "statModified",
+                "name": "banner_icon",
+                "value": profile.stats.attributes.banner_icon
+            })
+
+            ApplyProfileChanges.push({
+                "changeType": "statModified",
+                "name": "banner_color",
+                "value": profile.stats.attributes.banner_color
+            })
+        }
+
+        await profiles.updateOne({ $set: { [`profiles.${req.query.profileId}`]: profile } });
+    }
+
+    if (QueryRevision != ProfileRevisionCheck) {
+        ApplyProfileChanges = [{
+            "changeType": "fullProfileUpdate",
+            "profile": profile
+        }];
+    }
+
+    res.json({
+        profileRevision: profile.rvn || 0,
+        profileId: req.query.profileId || "profile0",
+        profileChangesBaseRevision: BaseRevision,
+        profileChanges: ApplyProfileChanges,
+        profileCommandRevision: profile.commandRevision || 0,
+        serverTime: new Date().toISOString(),
+        responseVersion: 1
+    })
+    res.end();
+});
+
 app.post("/fortnite/api/game/v2/profile/*/client/SetReceiveGiftsEnabled", verifyToken, async (req, res) => {
     const profiles = await Profile.findOne({ accountId: req.user.accountId });
 

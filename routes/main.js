@@ -2,6 +2,14 @@ const express = require("express");
 const fs = require("fs");
 const app = express.Router();
 
+const functions = require("../structs/functions.js");
+
+app.get("/fortnite/api/game/v2/world/info", async (req, res) => {
+  const worldstw = functions.getTheater(req);
+
+  res.json(worldstw)
+})
+
 app.get("/fortnite/api/game/v2/voice/*", (req, res) => {
   res.status(204);
   res.end();
@@ -10,6 +18,10 @@ app.get("/fortnite/api/game/v2/voice/*", (req, res) => {
 app.get("/eulatracking/api/shared/agreements/fn*", async (req, res) => {
   res.json({});
 });
+
+app.get("/fortnite/api/game/v2/friendcodes/*/epic", async (req, res) => {
+  res.json([])
+})
 
 app.get("/api/voicechat", (req, res) => {
   const Id = req.body.machine_id;
