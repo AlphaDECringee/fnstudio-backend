@@ -4,11 +4,6 @@ const app = express.Router();
 
 const functions = require("../structs/functions.js");
 
-app.get("/fortnite/api/game/v2/world/info", async (req, res) => {
-  const worldstw = functions.getTheater(req);
-
-  res.json(worldstw)
-})
 
 app.get("/fortnite/api/game/v2/voice/*", (req, res) => {
   res.status(204);
@@ -139,9 +134,10 @@ app.get("/fortnite/api/game/v2/twitch/*", (req, res) => {
   res.end();
 });
 
-app.get("/fortnite/api/game/v2/world/info", (req, res) => {
-  res.json({});
-});
+app.get("/fortnite/api/game/v2/world/info", async (req, res) => {
+  const worldstw = functions.getTheater(req);
+  res.json(worldstw)
+})
 
 app.post(
   "/fortnite/api/game/v2/chat/*/recommendGeneralChatRooms/pc",

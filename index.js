@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 const wss = new WebSocket({
   server: app.listen(PORT, () => {
     log.backend(
-      "LawinServerV2 started listening on port: " + PORT
+      "Backend ist auf Port " + PORT + " gestartet."
     );
     require("./DiscordBot/index.js"); // starting discord bot
     xmpp(wss); // starting xmpp N matchmaker
@@ -41,7 +41,7 @@ const wss = new WebSocket({
 });
 
 mongoose.connect(config.mongodb.database, () => {
-  log.backend("App successfully connected to MongoDB!");
+  log.backend("Backend hat sich erfolgreich mit der Datenbank verbunden.");
 });
 mongoose.connection.on("error", (err) => {
   log.error(

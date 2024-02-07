@@ -11,7 +11,7 @@ const PORT = 8080;
 
 module.exports = (wss) => {
   wss.on("listening", () => {
-    log.xmpp(`XMPP and Matchmaker are listening on port: ${PORT}`);
+    log.xmpp(`XMPP und Matchmaker laufen auf Port ${PORT}.`);
   });
   wss.on("connection", async (ws) => {
     ws.on("error", () => {});
