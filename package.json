@@ -1,23 +1,43 @@
 {
   "name": "fnstudio-backend",
-  "version": "1.0.0",
-  "description": "A fortnite backend",
-  "main": "index.js",
+  "version": "2.7.4",
+  "description": "A Fortnite backend",
+  "main": "app.js",
+  "bin": "app.js",
   "dependencies": {
-    "bcrypt": "^5.1.0",
-    "discord.js": "^13.7.0",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "express-rate-limit": "^6.7.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.6.5",
+    "axios": "^0.21.2",
+    "body-parser": "^1.20.1",
+    "compare-versions": "^4.1.2",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "express-ws": "^4.0.0",
+    "follow-redirects": ">=1.14.8",
+    "ini": "^4.1.1",
+    "jsonwebtoken": "^9.0.0",
+    "machine": "^15.2.3",
+    "machinepack-redis": "^2.0.7",
+    "multer": "^1.4.2",
     "path": "^0.12.7",
-    "uuid": "^9.0.0",
-    "ws": "^8.9.0",
+    "sails": "^1.5.9",
+    "sails-hook-autoreload": "^1.1.0",
+    "simple-git": "^3.20.0",
+    "skipper": "^0.9.4",
+    "uuid": "^8.3.2",
     "xml-parser": "^1.2.1",
     "xmlbuilder": "^15.1.1"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node app.js"
+  },
+  "pkg": {
+    "scripts": "app.js",
+    "assets": [ "config/**/*", "cosmetics_config.json", "profile.js", "profile_template/**/*", "responses/**/*", "structs/**/*", "LauncherAssets/**/*", "!node_modules/opn/xdg-open" ],
+    "targets": [ "node16-win" ]
+  },
+
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "@types/ws": "^7.4.0",
+    "typescript": "^4.1.5"
   }
 }
