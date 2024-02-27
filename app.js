@@ -2,7 +2,6 @@ const sails = require('sails');
 const NeoLog = require('./structs/NeoLog')
 const { default: axios } = require('axios');
 const fs = require("fs");
-require('machinepack-redis/machines/create-manager');
 
 
 async function compareAndUpdateKeychain() {
@@ -37,7 +36,8 @@ async function compareAndUpdateKeychain() {
 	 	 if (err) throw err;
 		});
   });
-  NeoLog.Debug(`'keychain.json' wurde aktualisiert.`);
+  NeoLog.Debug(`Updated keychain.json`)
+
 }
 
 async function startbackend(){
@@ -55,7 +55,7 @@ async function startbackend(){
 			console.log(err)
 		}
     });
-	NeoLog.Log('Backend ist auf Port 5595 gestartet.');
+	NeoLog.Log('Neonite is up and listening on port 5595!');
   }
 
   async function runfunctions(){

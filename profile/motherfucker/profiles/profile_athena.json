@@ -1,11 +1,11 @@
 {
-  "_id": "",
+  "_id": "motherfucker",
   "Update": "profile by tim",
-  "created": "2022-01-08T22:58:06.983Z",
-  "updated": "2022-01-08T22:58:57.261Z",
+  "created": "2024-02-19T21:21:02.108Z",
+  "updated": "2024-02-19T21:21:02.108Z",
   "rvn": 24,
   "wipeNumber": 1,
-  "accountId": "",
+  "accountId": "motherfucker",
   "profileId": "athena",
   "version": "neonite_2",
   "items": {
@@ -497,8 +497,8 @@
       "season_friend_match_boost": 1,
       "active_loadout_index": 1,
       "favorite_musicpack": "",
-      "favorite_glider": "",
-      "favorite_pickaxe": "",
+      "favorite_glider": "AthenaGlider:DefaultGlider",
+      "favorite_pickaxe": "AthenaPickaxe:DefaultPickaxe",
       "favorite_skydivecontrail": "",
       "favorite_backpack": "",
       "favorite_dance": [
@@ -510,7 +510,7 @@
         ""
       ],
       "favorite_itemwraps": [],
-      "favorite_character": "",
+      "favorite_character": "AthenaCharacter:CID_001_Athena_Commando_F_Default",
       "favorite_loadingscreen": ""
     }
   },

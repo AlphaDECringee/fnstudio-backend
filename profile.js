@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 
+// @author armisto#2174
 module.exports = {
     /**
      * Adds an item to the profile JSON.

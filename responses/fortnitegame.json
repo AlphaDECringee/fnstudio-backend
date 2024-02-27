@@ -46,8 +46,8 @@
             "hidden": false,
             "_type": "CommonUI Simple Message Base",
             "subgame": "br",
-            "body": "Spiele erneut OG Fortnite Battle Royale und Rette die Welt! (Backend: Neonite | modified by Alpha)",
-            "title": "FNStudio",
+            "body": "Made by kemo (@xkem0x)\nMaintained by Hybrid (@unrealhybrid).\nDiscord: https://discord.gg/neo-mods-897532507048796210",
+            "title": "Neonite V2",
             "spotlight": false
         }]
     },
@@ -70,8 +70,8 @@
             {
                 "hidden": false,
                 "_type": "CommonUI Emergency Notice Base",
-                "title": "FNStudio",
-                "body": "Spiele erneut OG Fortnite Battle Royale und Rette die Welt! (Backend: Neonite | modified by Alpha)"
+                "title": "Neonite V2",
+                "body": "Made by kemo (@xkem0x)\nMaintained by Hybrid (@unrealhybrid).\nDiscord: https://discord.gg/neo-mods-897532507048796210"
             }
         ]
     },
@@ -87,10 +87,10 @@
             "tileImage": "",
             "videoMute": false,
             "hidden": false,
-            "tabTitleOverride": "FNStudio",
+            "tabTitleOverride": "Neonite V2",
             "_type": "CommonUI Simple Message MOTD",
-            "title": "FNStudio",
-            "body": "Spiele erneut OG Fortnite Battle Royale und Rette die Welt! (Backend: Neonite | modified by Alpha)",
+            "title": "Neonite",
+            "body": "Made by Kemo (@xkem0x) and maintained by Beat (@TheBeatYT_evil). If you have any bugs, you can join our Discord by clicking the button below.",
             "videoLoop": false,
             "videoStreamingEnabled": false,
             "sortingPriority": 0,
@@ -98,8 +98,8 @@
             "videoAutoplay": false,
             "videoFullscreen": false,
             "spotlight": false,
-            "websiteURL": "https://discord.gg/q5zAjdQrMg",
-            "websiteButtonText": "Joine unseren Discord!"
+            "websiteURL": "https://discord.gg/DJ6VUmD",
+            "websiteButtonText": "Join our discord"
         }]
     },
     "jcr:isCheckedOut": true,

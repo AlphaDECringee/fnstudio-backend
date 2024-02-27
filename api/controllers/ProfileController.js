@@ -51,23 +51,6 @@ module.exports = {
 				}
 
 			}
-
-			if (profileData.stats) {
-				var pastSeasons = [];
-				for (var i = 1; i <= 100; i++) {
-					pastSeasons.push({
-						"seasonNumber": i,
-						"numWins": 10000,
-						"seasonXp": 1000000,
-						"seasonLevel": 500,
-						"bookXp": 1000000,
-						"bookLevel": 500,
-						"purchasedVIP": true
-					});
-				}
-
-				profileData.stats["attributes"]["past_seasons"] = pastSeasons;
-			}
 			return {
 				profileData,
 				response: {
@@ -341,106 +324,6 @@ module.exports = {
 
 			case "RefreshExpeditions": {
 				checkValidProfileID("profile0");
-				break;
-			}
-
-			case "SetHomebaseName": {
-				checkValidProfileID("common_public", "profile0")
-				if (req.body.homebaseName) {
-					switch (req.query.profileId) {
-			
-						case "profile0":
-							profileData.stats.attributes.homebase.townName = req.body.homebaseName;
-							break;
-			
-						case "common_public":
-							profileData.stats.attributes.homebase_name = req.body.homebaseName;
-							break;
-					}
-				}
-				profileData.commandRevision++;
-				profileData.rvn++;
-				response.profileChanges = [{
-					"changeType": "fullProfileUpdate",
-					"profile": profileData
-				}];
-				Profile.saveProfile(accountId, profileId, profileData)
-				break;
-			}
-
-			case "UpdateQuestClientObjectives": {
-				checkValidProfileID("campaign", "profile0")
-				var StatChanged = false;
-				if (req.body.advance) {
-					for (var i in req.body.advance) {
-						var QuestsToUpdate = [];
-						for (var x in profileData.items) {
-							if (profileData.items[x].templateId.toLowerCase().startsWith("quest:")) {
-								for (var y in profileData.items[x].attributes) {
-									if (y.toLowerCase() == `completion_${req.body.advance[i].statName}`) {
-										QuestsToUpdate.push(x)
-									}
-								}
-							}
-						}
-						for (var i = 0; i < QuestsToUpdate.length; i++) {
-							var bIncomplete = false;
-							profileData.items[QuestsToUpdate[i]].attributes[`completion_${req.body.advance[i].statName}`] = req.body.advance[i].count;
-							if (profileData.items[QuestsToUpdate[i]].attributes.quest_state.toLowerCase() != "claimed") {
-								for (var x in profileData.items[QuestsToUpdate[i]].attributes) {
-									if (x.toLowerCase().startsWith("completion_")) {
-										if (profileData.items[QuestsToUpdate[i]].attributes[x] == 0) {
-											bIncomplete = true;
-										}
-									}
-								}
-								if (bIncomplete == false) {
-									profileData.items[QuestsToUpdate[i]].attributes.quest_state = "Claimed";
-								}
-							}
-							StatChanged = true;
-						}
-					}
-				}
-				profileData.commandRevision++;
-				profileData.rvn++;
-				response.profileChanges = [{
-					"changeType": "fullProfileUpdate",
-					"profile": profileData
-				}];
-				Profile.saveProfile(accountId, profileId, profileData)
-				break;
-			}
-
-			case "ClaimLoginReward": {
-				const DailyRewards = require("../../responses/Campaign/dailyRewards.json");
-				var StatChanged = false;
-				var Notifications = [];
-				var DateFormat = (new Date().toISOString()).split("T")[0] + "T00:00:00.000Z";
-
-			    if (profileData.stats.attributes.daily_rewards.lastClaimDate != DateFormat) {
-        			profileData.stats.attributes.daily_rewards.nextDefaultReward += 1;
-        			profileData.stats.attributes.daily_rewards.totalDaysLoggedIn += 1;
-        			profileData.stats.attributes.daily_rewards.lastClaimDate = DateFormat;
-        			profileData.stats.attributes.daily_rewards.additionalSchedules.founderspackdailyrewardtoken.rewardsClaimed += 1;
-        			StatChanged = true;
-    			}
-
-    			if (StatChanged == true) {
-        			profileData.commandRevision++;
-					profileData.rvn++;
-
-        			if (season < 7) {
-            			var Day = profile.stats.attributes.daily_rewards.totalDaysLoggedIn % 336;
-            			Notifications.push({
-                			"type": "daily_rewards",
-                			"primary": true,
-                			"daysLoggedIn": profile.stats.attributes.daily_rewards.totalDaysLoggedIn,
-                			"items": [DailyRewards[Day]]
-            			})
-        			}
-    			}
-				Profile.saveProfile(accountId, profileId, profileData)
 				break;
 			}
 
@@ -795,6 +678,7 @@ module.exports = {
 
 			case "SetAffiliateName": {
 				checkValidProfileID("common_core");
+				Profile.modifyStat(profileData, "mtx_affiliate", req.body.affiliateName, profileChanges);
 				Profile.modifyStat(profileData, "mtx_affiliate_set_time", new Date().toISOString(), profileChanges);
 				break;
 			}

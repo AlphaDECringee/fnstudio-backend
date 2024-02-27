@@ -1,15 +1,13 @@
 {
-  "_id": "",
-  "created": "0001-01-01T00:00:00.000Z",
-  "updated": "0001-01-01T00:00:00.000Z",
-  "rvn": 1,
-  "wipeNumber": 1,
-  "accountId": "",
-  "profileId": "collections",
-  "version": "no_version",
-  "items": {},
-  "stats": {
-    "attributes": {}
-  },
-  "commandRevision": 0
-}
+    "created": "",
+    "updated": "",
+    "rvn": 1,
+    "wipeNumber": 1,
+    "accountId": "",
+    "profileId": "collections",
+    "version": "fortnite_start",
+    "items": {},
+    "stats": {
+      "attributes": {}
+    }
+  }

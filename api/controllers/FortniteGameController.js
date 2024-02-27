@@ -5,7 +5,6 @@ var fs = require('fs')
 var ini = require('ini')
 const contentPages = path.join(__dirname, '../../responses/fortnitegame.json');
 
-
 function getSeasonInfo(req) {
     const userAgent = req.headers['user-agent'];
     const season = userAgent?.split('-')[1];

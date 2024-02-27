@@ -1,9 +1,9 @@
 {
-  "created": "",
-  "updated": "",
+  "created": "2024-02-19T21:21:02.094Z",
+  "updated": "2024-02-19T21:21:02.094Z",
   "rvn": 1,
   "wipeNumber": 1,
-  "accountId": "",
+  "accountId": "motherfucker",
   "profileId": "common_public",
   "version": "fortnite_start",
   "items": {},
@@ -13,5 +13,6 @@
       "homebase_name": "",
       "banner_icon": ""
     }
-  }
+  },
+  "_id": "motherfucker"
 }
